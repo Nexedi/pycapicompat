@@ -33,7 +33,7 @@
  *   https://lab.nexedi.com/nexedi/pycapicompat/raw/master/pycapicompat.h
  *   (or https://lab.nexedi.com/nexedi/pycapicompat.git for Git access)
  *
- * Last updated: 2016-06-13
+ * Last updated: 2016-06-17
  */
 
 #include <Python.h>
@@ -42,32 +42,37 @@
 extern "C" {
 #endif
 
-// TODO(Daetalus)
-#if 0
-#ifndef IMPLEMENTATION_SUPPORTS_EXTENDED_C_API
-#define PyErr_GetExcInfoType() PyThreadState_GET()->exc_type
-#endif
-#ifdef PYSTON_VERSION
-  foo = PyErr_GetExcInfoType(); // a new API function
-#else
-  foo = PyThreadState_GET()->exc_type; // direct field access
-#endif
+/* we support: CPython, Pyston, PyPy.
+ * define also CPYTHON_VERSION as PY_VERSION is defined on all implementations */
+#if !defined(PYSTON_VERSION) && !defined(PYPY_VERSION)
+# define CPYTHON_VERSION    PY_VERSION
 #endif
 
-// info about free variables
-// TODO(Daetalus) verify and fill more
+
 #ifdef CPYTHON_VERSION
-// TODO(Daetalus) see how Cython does this check
-#elif defined(PYSTON_VERSION)
-void PyCode_HasFreeVars(BoxedCode* code) {
-  return code->source->getScopeInfo()->takesClosure();
+
+// PyCode. Check whether there are free variables
+static inline int PyCode_HasFreeVars(PyCodeObject *co) {
+    return PyCode_GetNumFree(co) > 0 ? 1 : 0;
 }
-#else
-# error TODO pypy:PyCode_HasFreeVars not implemented for your python version
+
+// PyFrame. Set frame line number
+static inline void
+PyFrame_SetLineNumber(PyFrameObject *f, int lineno) {
+    f->f_lineno = lineno;
+}
+
+#elif defined(PYSTON_VERSION)
+
+// PyCode_HasFreeVars(co)               provided out of the box
+// PyFrame_SetLineNumber(f, lineno)     provided out of the box
+
+#elif defined(PYPY_VERSION)
+
+// TODO: PyFrame_SetLineNumber(f, lineno)
+// TODO: PyCode_HasFreeVars(co)
+
 #endif
-
-// TODO(Daetalus) add more stuff.
-
 
 #ifdef __cplusplus
 }
