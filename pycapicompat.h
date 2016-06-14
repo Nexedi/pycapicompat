@@ -33,7 +33,7 @@
  *   https://lab.nexedi.com/nexedi/pycapicompat/raw/master/pycapicompat.h
  *   (or https://lab.nexedi.com/nexedi/pycapicompat.git for Git access)
  *
- * Last updated: 2016-06-13
+ * Last updated: 2016-06-15
  */
 
 #include <Python.h>
@@ -42,32 +42,15 @@
 extern "C" {
 #endif
 
-// TODO(Daetalus)
-#if 0
-#ifndef IMPLEMENTATION_SUPPORTS_EXTENDED_C_API
-#define PyErr_GetExcInfoType() PyThreadState_GET()->exc_type
-#endif
-#ifdef PYSTON_VERSION
-  foo = PyErr_GetExcInfoType(); // a new API function
-#else
-  foo = PyThreadState_GET()->exc_type; // direct field access
-#endif
-#endif
+#if !defined(PYSTON_VERSION)
+// This block is for CPython
+// Extented C API should be added to here.
 
-// info about free variables
-// TODO(Daetalus) verify and fill more
-#ifdef CPYTHON_VERSION
-// TODO(Daetalus) see how Cython does this check
-#elif defined(PYSTON_VERSION)
-void PyCode_HasFreeVars(BoxedCode* code) {
-  return code->source->getScopeInfo()->takesClosure();
-}
-#else
-# error TODO pypy:PyCode_HasFreeVars not implemented for your python version
+// Set the line number in PyFrameObject
+static inline void PyFrame_SetLineNumber(PyFrameObject *py_frame, int py_line) { py_frame->f_lineno = py_line; }
+// PyCodeObject: checking free vars
+static inline int PyCode_HasFreeVars(PyCodeObject *co) { return PyCode_GetNumFree((PyCodeObject *)o) > 0 ? 1 : 0; }
 #endif
-
-// TODO(Daetalus) add more stuff.
-
 
 #ifdef __cplusplus
 }
