@@ -33,7 +33,7 @@
  *   https://lab.nexedi.com/nexedi/pycapicompat/raw/master/pycapicompat.h
  *   (or https://lab.nexedi.com/nexedi/pycapicompat.git for Git access)
  *
- * Last updated: 2016-06-17
+ * Last updated: 2016-06-24
  */
 
 #include <Python.h>
@@ -48,30 +48,47 @@ extern "C" {
 # define CPYTHON_VERSION    PY_VERSION
 #endif
 
-
+/*
+ * Wrappers for single Python implementation.
+ */
 #ifdef CPYTHON_VERSION
+// CPython only wrapper
+#elif defined(PYSTON_VERSION)
+// Pyston only wrapper
+// PyCode_HasFreeVars(co)               provided out of the box
+// PyFrame_SetLineNumber(f, lineno)     provided out of the box
+#elif defined(PYPY_VERSION)
+// PyPy only wrapper
+#endif
 
+/*
+ * Wrappers for two of three implementations.
+ * If you add a function for any two implementaions.
+ * Please add function description in corresponding one in above.
+ */
+
+// Wrappers for PyPy and CPython
+#if defined(CPYTHON_VERSION) || defined(PYPY_VERSION)
 // PyCode. Check whether there are free variables
+// TODO: Need test in PyPy
 static inline int PyCode_HasFreeVars(PyCodeObject *co) {
     return PyCode_GetNumFree(co) > 0 ? 1 : 0;
 }
 
 // PyFrame. Set frame line number
+// TODO: Need test in PyPy
 static inline void
 PyFrame_SetLineNumber(PyFrameObject *f, int lineno) {
     f->f_lineno = lineno;
 }
+#endif
 
-#elif defined(PYSTON_VERSION)
+// Wrappers for CPython and Pyston
+#if defined(CPYTHON_VERSION) || defined(PYSTON_VERSION)
+#endif
 
-// PyCode_HasFreeVars(co)               provided out of the box
-// PyFrame_SetLineNumber(f, lineno)     provided out of the box
-
-#elif defined(PYPY_VERSION)
-
-// TODO: PyFrame_SetLineNumber(f, lineno)
-// TODO: PyCode_HasFreeVars(co)
-
+// Wrappers for Pyston and PyPy
+#if defined(PYSTON_VERSION) || defined(PYPY_VERSION)
 #endif
 
 #ifdef __cplusplus
