@@ -33,7 +33,7 @@
  *   https://lab.nexedi.com/nexedi/pycapicompat/raw/master/pycapicompat.h
  *   (or https://lab.nexedi.com/nexedi/pycapicompat.git for Git access)
  *
- * Last updated: 2016-06-17
+ * Last updated: 2016-06-27
  */
 
 #include <Python.h>
@@ -69,8 +69,18 @@ PyFrame_SetLineNumber(PyFrameObject *f, int lineno) {
 
 #elif defined(PYPY_VERSION)
 
-// TODO: PyFrame_SetLineNumber(f, lineno)
-// TODO: PyCode_HasFreeVars(co)
+// PyCode. Check whether there are free variables
+// TODO: need to check it on PyPy
+static inline int PyCode_HasFreeVars(PyCodeObject *co) {
+    return PyCode_GetNumFree(co) > 0 ? 1 : 0;
+}
+
+// PyFrame. Set frame line number
+// TODO: need to check it on PyPy
+static inline void
+PyFrame_SetLineNumber(PyFrameObject *f, int lineno) {
+    f->f_lineno = lineno;
+}
 
 #endif
 
