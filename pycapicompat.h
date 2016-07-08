@@ -37,6 +37,7 @@
  */
 
 #include <Python.h>
+#include <assert.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,10 +63,24 @@ PyFrame_SetLineNumber(PyFrameObject *f, int lineno) {
     f->f_lineno = lineno;
 }
 
+// Check whether the type of a method is PyMethodDescr_Type.
+static inline bool
+PyMethodDescr_Check(PyObject *method) {
+    // It appears that PyMethodDescr_Type is not anywhere exposed in the Python/C API
+    static PyTypeObject *methoddescr_type = NULL;
+    if (methoddescr_type == NULL) {
+       PyObject *meth = PyObject_GetAttrString((PyObject*)&PyList_Type, "append");
+       assert(meth);
+       methoddescr_type = Py_TYPE(meth);
+       Py_DECREF(meth);
+    }
+    return PyObject_TypeCheck(method, methoddescr_type);
+}
 #elif defined(PYSTON_VERSION)
 
 // PyCode_HasFreeVars(co)               provided out of the box
 // PyFrame_SetLineNumber(f, lineno)     provided out of the box
+// PyMethodDescr_Check(method)          provided out of the box
 
 #elif defined(PYPY_VERSION)
 
@@ -82,6 +97,8 @@ PyFrame_SetLineNumber(PyFrameObject *f, int lineno) {
     f->f_lineno = lineno;
 }
 
+// TODO: how to implement it in PyPy?
+// PyMethodDescr_Check(method)
 #endif
 
 #ifdef __cplusplus
