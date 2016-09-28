@@ -2,6 +2,13 @@
  pycapicompat.h - Extra CAPI functions for compatibility between various C-based Python implementations
 ========================================================================================================
 
+:UPDATE: as of 2016-Sep-28 pycapicompat.h is no longer active. All relevant bits
+         went into Cython codebase directly: https://github.com/cython/cython/pull/528
+
+--------
+
+( below is original project description )
+
 `pycapicompat.h` is a C-header with additional CAPI functions providing unified
 access to C-based functionality between various C-bases Python implementations.
 Currently covered are:
